@@ -2,12 +2,18 @@ package sample;
 
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
+import javafx.scene.Node;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.GridPane;
 
+import javax.swing.*;
 import java.io.*;
 import java.net.Socket;
 
@@ -27,23 +33,50 @@ public class Controller {
     private TextField playerNameTextField;
     @FXML
     private Button startGameButton;
-
+    @FXML
+    private Button sendButton;
+    @FXML
+    private GridPane enemyBoard;
     // event listeners
     @FXML
     protected void startGame(ActionEvent event) throws IOException { // after we press Play button, we're connecting to the server
         try {
+
             Socket clientSocket = new Socket(serverIpTextField.getText(), Integer.parseInt(serverPortTextField.getText()));
             connectionSuccess();
-
+            prepareOurBoard();
+            prepareEnemyBoard();
             ServerListener serverListener = new ServerListener(clientSocket);
             Thread thread = new Thread(serverListener);
             thread.start();
             setStartControlsDisabled();
-
         } catch (Exception e) {
             connectionFailed();
         }
 
+    }
+
+    private void prepareOurBoard() {
+    }
+
+    //prepare handlers and view for enemy board
+    private void prepareEnemyBoard() {
+        for (int i = 1; i < 11; i++) {
+            for (int j = 1; j < 11; j++) {
+                enemyBoard.add(new AnchorPane(),i,j);
+            }
+        }
+            for(Node i : enemyBoard.getChildren())
+    {
+        i.setStyle("-fx-background-color: white;-fx-border-color: black;");
+        i.setOnMouseClicked(new EventHandler<MouseEvent>() {
+            @Override
+            public void handle(MouseEvent mouseEvent) {
+                i.setStyle("-fx-background-color: grey;-fx-border-color: black;");
+                i.setDisable(true);
+            }
+        });
+    }
     }
 
     private void setStartControlsDisabled() {
