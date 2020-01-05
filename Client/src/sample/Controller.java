@@ -17,10 +17,12 @@ import javafx.scene.layout.GridPane;
 import javax.swing.*;
 import java.io.*;
 import java.net.Socket;
+import java.util.ConcurrentModificationException;
 
 public class Controller {
     final int BUF_SIZE = 512;
     boolean gameStarted = false;
+    Socket clientSocket;
 
     @FXML
     private Label debugLabel;
@@ -45,8 +47,7 @@ public class Controller {
     @FXML
     protected void startGame(ActionEvent event) throws IOException { // after we press Play button, we're connecting to the server
         try {
-
-            Socket clientSocket = new Socket(serverIpTextField.getText(), Integer.parseInt(serverPortTextField.getText()));
+            clientSocket = new Socket(serverIpTextField.getText(), Integer.parseInt(serverPortTextField.getText()));
             connectionSuccess();
             ServerListener serverListener = new ServerListener(clientSocket);
             Thread thread = new Thread(serverListener);
@@ -67,10 +68,13 @@ public class Controller {
 
     // resetting app after error or end of game
     private void reset() {
-        serverIpTextField.setDisable(false);
-        serverPortTextField.setDisable(false);
-        playerNameTextField.setDisable(false);
-        startGameButton.setDisable(false);
+        try {
+            clientSocket.close();
+        } catch (IOException e) {
+
+        }
+        System.exit(0);
+        Platform.exit();
     }
 
     // popups with info, their names are intuitive
@@ -91,6 +95,7 @@ public class Controller {
     // internal class- listener to the server
     public class ServerListener implements Runnable {
         Socket socket;
+        int shipsToSet = 10;
 
         public ServerListener(Socket clientSocket) {
             socket = clientSocket;
@@ -277,7 +282,7 @@ public class Controller {
             message = message.substring(4);
             while (message.length() > 0) {
                 changeColorOfCell("red", message, enemyBoard);
-                message=message.substring(2);
+                message = message.substring(2);
             }
         }
 
@@ -298,7 +303,7 @@ public class Controller {
             message = message.substring(5);
             while (message.length() > 0) {
                 changeColorOfCell("red", message, ourBoard);
-                message=message.substring(2);
+                message = message.substring(2);
             }
         }
 
@@ -346,13 +351,7 @@ public class Controller {
                 alert.setHeaderText("There was an error during reading from the server. The game will be closed");
                 alert.showAndWait();
             });
-            try {
-                socket.close();
-                reset();
-                Thread.currentThread().interrupt();
-            } catch (IOException ex) {
-                ex.printStackTrace();
-            }
+            reset();
         }
 
         // popup for error in writing
@@ -363,13 +362,7 @@ public class Controller {
                 alert.setHeaderText("There was an error during writing to the server. The game will be closed");
                 alert.showAndWait();
             });
-            try {
-                socket.close();
-                reset();
-                Thread.currentThread().interrupt();
-            } catch (IOException ex) {
-                ex.printStackTrace();
-            }
+            reset();
         }
 
         // popup for server error in
