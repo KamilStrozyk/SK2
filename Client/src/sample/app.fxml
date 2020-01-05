@@ -21,7 +21,7 @@
     <children>
         <Pane prefHeight="200.0" prefWidth="200.0" style="-fx-background-color: #f9fbf2;" GridPane.rowSpan="4">
             <children>
-                <Label alignment="CENTER" text="STATKI" textAlignment="CENTER" wrapText="true">
+                <Label alignment="CENTER" text="BattleShips" textAlignment="CENTER" wrapText="true">
                     <font>
                         <Font name="JetBrains Mono Regular" size="13.0" />
                     </font>
@@ -47,6 +47,9 @@
                 <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
                 <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
             </rowConstraints>
+         <children>
+            <Label fx:id="enemyLabel" textFill="WHITE" GridPane.rowIndex="3" />
+         </children>
         </GridPane>
     </children>
 </GridPane>

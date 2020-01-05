@@ -19,6 +19,8 @@ public class Controller {
     @FXML
     private Label debugLabel;
     @FXML
+    private Label enemyLabel;
+    @FXML
     private TextField serverIpTextField;
     @FXML
     private TextField serverPortTextField;
@@ -61,13 +63,6 @@ public class Controller {
         alert.showAndWait();
     }
 
-    private void readingError() {
-        Alert alert = new Alert(Alert.AlertType.ERROR);
-        alert.setTitle("Error");
-        alert.setHeaderText("There was an error during reading from the server. The game will be closed");
-        alert.showAndWait();
-    }
-
     // internal class- listener to the server
     public class ServerListener implements Runnable {
         Socket socket;
@@ -96,8 +91,42 @@ public class Controller {
             }
         }
 
+// we're checking meaning of message from server
         private void handleServerMessage(String serverMessage) {
             Platform.runLater(() -> debugLabel.setText(serverMessage));
+
+            if(serverMessage.contains("enemy")) sendEnemyInfo(serverMessage);
+
+
+        }
+
+        // sending information of our enemy name
+        private void sendEnemyInfo(String message)
+        {
+            String enemyName = message.substring(6,message.length());
+            Platform.runLater(() -> enemyLabel.setText("Enemy: "+enemyName));
+            gameInfo("You're playing with: "+enemyName);
+        }
+
+
+        // popup for error in reading
+        private void readingError() {
+            Platform.runLater(() -> {
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.setTitle("Error");
+                alert.setHeaderText("There was an error during reading from the server. The game will be closed");
+                alert.showAndWait();
+            });
+        }
+
+        //poup with game information, no need to do different handlers
+        private void gameInfo(String message) {
+            Platform.runLater(() -> {
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle("Game Info");
+            alert.setHeaderText(message);
+            alert.showAndWait();
+            });
         }
     }
 }
