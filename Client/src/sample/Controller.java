@@ -96,13 +96,19 @@ public class Controller {
             Platform.runLater(() -> debugLabel.setText(serverMessage));
 
             if (serverMessage.contains("enemy")) sendEnemyInfo(serverMessage);
+            else if (serverMessage.contains("start")) gameInfo("The game is starting.");
             else if (serverMessage.contains("Ohit")) handleOurHit(serverMessage);
             else if (serverMessage.contains("Osink")) handleOurHit(serverMessage);
             else if (serverMessage.contains("Omiss")) handleOurMiss(serverMessage);
             else if (serverMessage.contains("hit")) handleHit(serverMessage);
             else if (serverMessage.contains("sink")) handleHit(serverMessage);
             else if (serverMessage.contains("miss")) handleMiss(serverMessage);
-
+            else if (serverMessage.contains("won")) gameInfo("Congratulations! you've won!");
+            else if (serverMessage.contains("lose")) gameInfo("You've lost!");
+            else if (serverMessage.contains("error")) serverError();
+            else {
+                // TODO: Handler for unexpected situations
+            }
         }
 
         // sending information of our enemy name
@@ -146,6 +152,17 @@ public class Controller {
             });
         }
 
+        // popup for server error in
+        private void serverError() {
+            Platform.runLater(() -> {
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.setTitle("Error");
+                alert.setHeaderText("There was unexpected server error. The game will be closed");
+                alert.showAndWait();
+                reset();
+            });
+        }
+
         //poup with game information, no need to do different handlers
         private void gameInfo(String message) {
             Platform.runLater(() -> {
@@ -153,6 +170,7 @@ public class Controller {
                 alert.setTitle("Game Info");
                 alert.setHeaderText(message);
                 alert.showAndWait();
+                if (message.contains("won") || message.contains("lost")) reset();
             });
         }
     }
