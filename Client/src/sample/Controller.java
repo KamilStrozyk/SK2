@@ -77,13 +77,13 @@ public class Controller {
                 try {
                     BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
                     String serverMessage = reader.readLine();
-                    handleServerMessage (serverMessage);
-                }catch (Exception e)
-                {
+                    handleServerMessage(serverMessage);
+                } catch (Exception e) {
                     readingError();
                     try {
                         socket.close();
                         reset();
+                        Thread.currentThread().interrupt();
                     } catch (IOException ex) {
                         ex.printStackTrace();
                     }
@@ -91,23 +91,50 @@ public class Controller {
             }
         }
 
-// we're checking meaning of message from server
+        // we're checking meaning of message from server
         private void handleServerMessage(String serverMessage) {
             Platform.runLater(() -> debugLabel.setText(serverMessage));
 
-            if(serverMessage.contains("enemy")) sendEnemyInfo(serverMessage);
-
+            if (serverMessage.contains("enemy")) sendEnemyInfo(serverMessage);
+            else if (serverMessage.contains("Ohit")) handleOurHit(serverMessage);
+            else if (serverMessage.contains("Osink")) handleOurHit(serverMessage);
+            else if (serverMessage.contains("Omiss")) handleOurMiss(serverMessage);
+            else if (serverMessage.contains("hit")) handleHit(serverMessage);
+            else if (serverMessage.contains("sink")) handleHit(serverMessage);
+            else if (serverMessage.contains("miss")) handleMiss(serverMessage);
 
         }
 
         // sending information of our enemy name
-        private void sendEnemyInfo(String message)
-        {
-            String enemyName = message.substring(6,message.length());
-            Platform.runLater(() -> enemyLabel.setText("Enemy: "+enemyName));
-            gameInfo("You're playing with: "+enemyName);
+        private void sendEnemyInfo(String message) {
+            String enemyName = message.substring(6, message.length());
+            Platform.runLater(() -> enemyLabel.setText("Enemy: " + enemyName));
+            gameInfo("You're playing with: " + enemyName);
         }
 
+        //we're setting the point in the grid orange when we're hit an enemy ship
+        private void handleHit(String message) {
+        }
+
+        //we're setting the whole sunk enemy ship in red
+        private void handleHitAndSink(String message) {
+        }
+
+        //we're setting the point in the grid grey when enemy miss our ship
+        private void handleMiss(String message) {
+        }
+
+        //we're setting the point in the grid orange when enemy hit our ship
+        private void handleOurHit(String message) {
+        }
+
+        //we're setting the whole sunk our ship in red
+        private void handleOurHitAndSink(String message) {
+        }
+
+        //we're setting the point in the grid grey when enemy miss our ship
+        private void handleOurMiss(String message) {
+        }
 
         // popup for error in reading
         private void readingError() {
@@ -122,10 +149,10 @@ public class Controller {
         //poup with game information, no need to do different handlers
         private void gameInfo(String message) {
             Platform.runLater(() -> {
-            Alert alert = new Alert(Alert.AlertType.INFORMATION);
-            alert.setTitle("Game Info");
-            alert.setHeaderText(message);
-            alert.showAndWait();
+                Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                alert.setTitle("Game Info");
+                alert.setHeaderText(message);
+                alert.showAndWait();
             });
         }
     }
