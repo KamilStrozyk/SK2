@@ -173,7 +173,7 @@ public class Controller {
 
         // we're checking meaning of message from server
         private void handleServerMessage(String serverMessage) {
-            Platform.runLater(() -> debugLabel.setText(serverMessage));
+            //Platform.runLater(() -> debugLabel.setText(serverMessage));
 
             if (serverMessage.contains("Ohit")) handleOurHit(serverMessage);
             else if (serverMessage.contains("Osink")) handleOurHitAndSink(serverMessage);
@@ -206,6 +206,7 @@ public class Controller {
 
         private void prepareOurBoard() {
             Platform.runLater(() -> {
+                debugLabel.setText("Set your ships.");
                 for (int i = 1; i < 11; i++) {
                     for (int j = 1; j < 11; j++) {
                         AnchorPane boardElement = new AnchorPane();
@@ -221,28 +222,135 @@ public class Controller {
 
                             private void setShip(int x, int y) {
                                 if (shipsToSet > 0) {
-
-                                    changeColorOfCell("green", Integer.toString(y - 1) + Integer.toString(x - 1), ourBoard);
-                                    boardToSent[y-1][x-1] = 1;
-                                    shipsToSet--;
-                                } else {
-                                    changeColorOfCell("green", Integer.toString(y - 1) + Integer.toString(x - 1), ourBoard);
-                                    boardToSent[y-1][x-1] = 1;
-                                    String clientMessage = "board";
-                                    for (int i = 0; i < 10; i++) {
-                                        for (int j = 0; j < 10; j++) {
-                                            clientMessage += Integer.toString(boardToSent[i][j]);
+                                    if (shipSizes[shipsToSet] == 4) {
+                                        if (x > 3 && boardToSent[y - 1][x - 4] == 0 && boardToSent[y - 1][x - 2] == 0 && boardToSent[y - 1][x - 3] == 0 && boardToSent[y - 1][x - 1] == 0) {
+                                            changeColorOfCell("green", Integer.toString(y - 1) + Integer.toString(x - 1), ourBoard);
+                                            changeColorOfCell("green", Integer.toString(y - 1) + Integer.toString(x - 2), ourBoard);
+                                            changeColorOfCell("green", Integer.toString(y - 1) + Integer.toString(x - 3), ourBoard);
+                                            changeColorOfCell("green", Integer.toString(y - 1) + Integer.toString(x - 4), ourBoard);
+                                            boardToSent[y - 1][x - 1] = 1;
+                                            boardToSent[y - 1][x - 2] = 1;
+                                            boardToSent[y - 1][x - 3] = 1;
+                                            boardToSent[y - 1][x - 4] = 1;
+                                            shipsToSet--;
+                                        } else if (x < 8 && boardToSent[y - 1][x + 2] == 0 && boardToSent[y - 1][x + 1] == 0 && boardToSent[y - 1][x] == 0 && boardToSent[y - 1][x - 1] == 0) {
+                                            changeColorOfCell("green", Integer.toString(y - 1) + Integer.toString(x - 1), ourBoard);
+                                            changeColorOfCell("green", Integer.toString(y - 1) + Integer.toString(x), ourBoard);
+                                            changeColorOfCell("green", Integer.toString(y - 1) + Integer.toString(x + 1), ourBoard);
+                                            changeColorOfCell("green", Integer.toString(y - 1) + Integer.toString(x + 2), ourBoard);
+                                            boardToSent[y - 1][x - 1] = 1;
+                                            boardToSent[y - 1][x] = 1;
+                                            boardToSent[y - 1][x + 1] = 1;
+                                            boardToSent[y - 1][x + 2] = 1;
+                                            shipsToSet--;
+                                        } else if (y > 3 && boardToSent[y - 4][x - 1] == 0 && boardToSent[y - 3][x - 1] == 0 && boardToSent[y - 2][x - 1] == 0 && boardToSent[y - 1][x - 1] == 0) {
+                                            changeColorOfCell("green", Integer.toString(y - 1) + Integer.toString(x - 1), ourBoard);
+                                            changeColorOfCell("green", Integer.toString(y - 2) + Integer.toString(x - 1), ourBoard);
+                                            changeColorOfCell("green", Integer.toString(y - 3) + Integer.toString(x - 1), ourBoard);
+                                            changeColorOfCell("green", Integer.toString(y - 4) + Integer.toString(x - 1), ourBoard);
+                                            boardToSent[y - 1][x - 1] = 1;
+                                            boardToSent[y - 2][x - 1] = 1;
+                                            boardToSent[y - 3][x - 1] = 1;
+                                            boardToSent[y - 4][x - 1] = 1;
+                                            shipsToSet--;
+                                        } else if (y < 8 && boardToSent[y + 2][x - 1] == 0 && boardToSent[y + 1][x - 1] == 0 && boardToSent[y][x - 1] == 0 && boardToSent[y - 1][x - 1] == 0) {
+                                            changeColorOfCell("green", Integer.toString(y + 2) + Integer.toString(x - 1), ourBoard);
+                                            changeColorOfCell("green", Integer.toString(y + 1) + Integer.toString(x - 1), ourBoard);
+                                            changeColorOfCell("green", Integer.toString(y) + Integer.toString(x - 1), ourBoard);
+                                            changeColorOfCell("green", Integer.toString(y - 1) + Integer.toString(x - 1), ourBoard);
+                                            boardToSent[y - 1][x - 1] = 1;
+                                            boardToSent[y][x - 1] = 1;
+                                            boardToSent[y + 1][x - 1] = 1;
+                                            boardToSent[y + 2][x - 1] = 1;
+                                            shipsToSet--;
                                         }
+                                    } else if (shipSizes[shipsToSet] == 3) {
+                                        if (x > 2 && boardToSent[y - 1][x - 2] == 0 && boardToSent[y - 1][x - 3] == 0 && boardToSent[y - 1][x - 1] == 0) {
+                                            changeColorOfCell("green", Integer.toString(y - 1) + Integer.toString(x - 1), ourBoard);
+                                            changeColorOfCell("green", Integer.toString(y - 1) + Integer.toString(x - 2), ourBoard);
+                                            changeColorOfCell("green", Integer.toString(y - 1) + Integer.toString(x - 3), ourBoard);
+                                            boardToSent[y - 1][x - 1] = 1;
+                                            boardToSent[y - 1][x - 2] = 1;
+                                            boardToSent[y - 1][x - 3] = 1;
+                                            shipsToSet--;
+                                        } else if (x < 9 && boardToSent[y - 1][x + 1] == 0 && boardToSent[y - 1][x] == 0 && boardToSent[y - 1][x - 1] == 0) {
+                                            changeColorOfCell("green", Integer.toString(y - 1) + Integer.toString(x - 1), ourBoard);
+                                            changeColorOfCell("green", Integer.toString(y - 1) + Integer.toString(x), ourBoard);
+                                            changeColorOfCell("green", Integer.toString(y - 1) + Integer.toString(x + 1), ourBoard);
+                                            boardToSent[y - 1][x - 1] = 1;
+                                            boardToSent[y - 1][x] = 1;
+                                            boardToSent[y - 1][x + 1] = 1;
+                                            shipsToSet--;
+                                        } else if (y > 2 && boardToSent[y - 3][x - 1] == 0 && boardToSent[y - 2][x - 1] == 0 && boardToSent[y - 1][x - 1] == 0) {
+                                            changeColorOfCell("green", Integer.toString(y - 1) + Integer.toString(x - 1), ourBoard);
+                                            changeColorOfCell("green", Integer.toString(y - 2) + Integer.toString(x - 1), ourBoard);
+                                            changeColorOfCell("green", Integer.toString(y - 3) + Integer.toString(x - 1), ourBoard);
+                                            boardToSent[y - 1][x - 1] = 1;
+                                            boardToSent[y - 2][x - 1] = 1;
+                                            boardToSent[y - 3][x - 1] = 1;
+                                            shipsToSet--;
+                                        } else if (y < 9 && boardToSent[y + 1][x - 1] == 0 && boardToSent[y][x - 1] == 0 && boardToSent[y - 1][x - 1] == 0) {
+                                            changeColorOfCell("green", Integer.toString(y + 1) + Integer.toString(x - 1), ourBoard);
+                                            changeColorOfCell("green", Integer.toString(y) + Integer.toString(x - 1), ourBoard);
+                                            changeColorOfCell("green", Integer.toString(y - 1) + Integer.toString(x - 1), ourBoard);
+                                            boardToSent[y - 1][x - 1] = 1;
+                                            boardToSent[y][x - 1] = 1;
+                                            boardToSent[y + 1][x - 1] = 1;
+                                            shipsToSet--;
+                                        }
+                                    } else if (shipSizes[shipsToSet] == 2) {
+                                        if (x > 1 && boardToSent[y - 1][x - 2] == 0 && boardToSent[y - 1][x - 1] == 0) {
+                                            changeColorOfCell("green", Integer.toString(y - 1) + Integer.toString(x - 1), ourBoard);
+                                            changeColorOfCell("green", Integer.toString(y - 1) + Integer.toString(x - 2), ourBoard);
+                                            boardToSent[y - 1][x - 1] = 1;
+                                            boardToSent[y - 1][x - 2] = 1;
+                                            shipsToSet--;
+                                        } else if (x < 10 && boardToSent[y - 1][x] == 0 && boardToSent[y - 1][x - 1] == 0) {
+                                            changeColorOfCell("green", Integer.toString(y - 1) + Integer.toString(x - 1), ourBoard);
+                                            changeColorOfCell("green", Integer.toString(y - 1) + Integer.toString(x), ourBoard);
+                                            boardToSent[y - 1][x - 1] = 1;
+                                            boardToSent[y - 1][x] = 1;
+                                            shipsToSet--;
+                                        } else if (y > 1 && boardToSent[y - 2][x - 1] == 0 && boardToSent[y - 1][x - 1] == 0) {
+                                            changeColorOfCell("green", Integer.toString(y - 1) + Integer.toString(x - 1), ourBoard);
+                                            changeColorOfCell("green", Integer.toString(y - 2) + Integer.toString(x - 1), ourBoard);
+                                            boardToSent[y - 1][x - 1] = 1;
+                                            boardToSent[y - 2][x - 1] = 1;
+                                            shipsToSet--;
+                                        } else if (y < 10 && boardToSent[y][x - 1] == 0 && boardToSent[y - 1][x - 1] == 0) {
+                                            changeColorOfCell("green", Integer.toString(y) + Integer.toString(x - 1), ourBoard);
+                                            changeColorOfCell("green", Integer.toString(y - 1) + Integer.toString(x - 1), ourBoard);
+                                            boardToSent[y - 1][x - 1] = 1;
+                                            boardToSent[y][x - 1] = 1;
+                                            shipsToSet--;
+                                        }
+                                    } else if (shipSizes[shipsToSet] == 1 && boardToSent[y - 1][x - 1] == 0) {
+                                        changeColorOfCell("green", Integer.toString(y - 1) + Integer.toString(x - 1), ourBoard);
+                                        boardToSent[y - 1][x - 1] = 1;
+                                        shipsToSet--;
                                     }
-                                    PrintWriter writer = null;
-                                    try {
-                                        writer = new PrintWriter(socket.getOutputStream(), true);
-                                        writer.println(clientMessage);
-                                    } catch (IOException e) {
-                                        writingError();
+
+                                } else {
+                                    if (shipSizes[shipsToSet] == 1 && boardToSent[y - 1][x - 1] == 0) {
+                                        changeColorOfCell("green", Integer.toString(y - 1) + Integer.toString(x - 1), ourBoard);
+                                        boardToSent[y - 1][x - 1] = 1;
+
+                                        String clientMessage = "board";
+                                        for (int i = 0; i < 10; i++) {
+                                            for (int j = 0; j < 10; j++) {
+                                                clientMessage += Integer.toString(boardToSent[i][j]);
+                                            }
+                                        }
+                                        PrintWriter writer = null;
+                                        try {
+                                            writer = new PrintWriter(socket.getOutputStream(), true);
+                                            writer.println(clientMessage);
+                                        } catch (IOException e) {
+                                            writingError();
+                                        }
+                                        ourBoard.setDisable(true);
+                                        setWaitingMessage(true);
                                     }
-                                    ourBoard.setDisable(true);
-                                    setWaitingMessage(true);
                                 }
                             }
                         });
