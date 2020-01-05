@@ -22,6 +22,7 @@ import java.util.ConcurrentModificationException;
 public class Controller {
     final int BUF_SIZE = 512;
     boolean gameStarted = false;
+    int[][] boardToSent = new int[10][10];
     Socket clientSocket;
 
     @FXML
@@ -95,7 +96,7 @@ public class Controller {
     // internal class- listener to the server
     public class ServerListener implements Runnable {
         Socket socket;
-        int shipsToSet = 10;
+        int shipsToSet = 0;
 
         public ServerListener(Socket clientSocket) {
             socket = clientSocket;
@@ -214,20 +215,30 @@ public class Controller {
                             @Override
                             public void handle(MouseEvent mouseEvent) {
                                 boardElement.setDisable(true);
-                                //sendHitToServer(finalI, finalJ);
+                                setShip(finalI, finalJ);
                             }
 
-                        /*private void sendHitToServer(int x, int y) {
-                            String clientMessage = "check" + Integer.toString(x) + Integer.toString(y);
-                            PrintWriter writer = null;
-                            try {
-                                writer = new PrintWriter(socket.getOutputStream(), true);
-                                writer.println(clientMessage);
-                            } catch (IOException e) {
-                                writingError();
+                            private void setShip(int x, int y) {
+                                if (shipsToSet > 0) {
+
+                                } else {
+
+                                    String clientMessage = "board";
+                                    for (int i = 0; i < 10; i++) {
+                                        for (int j = 0; j < 10; j++) {
+                                            clientMessage += Integer.toString(boardToSent[i][j]);
+                                        }
+                                    }
+                                    PrintWriter writer = null;
+                                    try {
+                                        writer = new PrintWriter(socket.getOutputStream(), true);
+                                        writer.println(clientMessage);
+                                    } catch (IOException e) {
+                                        writingError();
+                                    }
+                                    setWaitingMessage(true);
+                                }
                             }
-                            setWaitingMessage(true);
-                        }*/
                         });
                         ourBoard.add(boardElement, i, j);
                         ourBoard.setConstraints(boardElement, i, j);
