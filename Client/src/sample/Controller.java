@@ -115,7 +115,7 @@ public class Controller {
         // waiting for enemy
         private void waitForEnemy() {
             boolean enemyChosen = false;
-            String clientMessage = "Player:" + playerNameTextField.getText();
+            String clientMessage = "Player:" + playerNameTextField.getText()+"\n";
             PrintWriter writer = null;
             try {
                 writer = new PrintWriter(socket.getOutputStream(), true);
@@ -341,6 +341,7 @@ public class Controller {
                                                 clientMessage += Integer.toString(boardToSent[i][j]);
                                             }
                                         }
+                                        clientMessage +="\n";
                                         PrintWriter writer = null;
                                         try {
                                             writer = new PrintWriter(socket.getOutputStream(), true);
@@ -378,7 +379,7 @@ public class Controller {
                             }
 
                             private void sendHitToServer(int y, int x) {
-                                String clientMessage = "check" + Integer.toString(x - 1) + Integer.toString(y - 1);
+                                String clientMessage = "check" + Integer.toString(x - 1) + Integer.toString(y - 1)+"\n";
                                 PrintWriter writer = null;
                                 try {
                                     writer = new PrintWriter(socket.getOutputStream(), true);
