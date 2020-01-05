@@ -96,7 +96,8 @@ public class Controller {
     // internal class- listener to the server
     public class ServerListener implements Runnable {
         Socket socket;
-        int shipsToSet = 0;
+        int shipsToSet = 9;
+        int[] shipSizes = {1, 1, 1, 1, 2, 2, 2, 3, 3, 4};
 
         public ServerListener(Socket clientSocket) {
             socket = clientSocket;
@@ -221,8 +222,12 @@ public class Controller {
                             private void setShip(int x, int y) {
                                 if (shipsToSet > 0) {
 
+                                    changeColorOfCell("green", Integer.toString(y - 1) + Integer.toString(x - 1), ourBoard);
+                                    boardToSent[y-1][x-1] = 1;
+                                    shipsToSet--;
                                 } else {
-
+                                    changeColorOfCell("green", Integer.toString(y - 1) + Integer.toString(x - 1), ourBoard);
+                                    boardToSent[y-1][x-1] = 1;
                                     String clientMessage = "board";
                                     for (int i = 0; i < 10; i++) {
                                         for (int j = 0; j < 10; j++) {
@@ -236,6 +241,7 @@ public class Controller {
                                     } catch (IOException e) {
                                         writingError();
                                     }
+                                    ourBoard.setDisable(true);
                                     setWaitingMessage(true);
                                 }
                             }
@@ -403,6 +409,7 @@ public class Controller {
             Platform.runLater(() -> {
                 if (set) debugLabel.setText("Waiting for the server response.");
                 else debugLabel.setText("");
+                enemyBoard.setDisable(set);
             });
         }
     }
