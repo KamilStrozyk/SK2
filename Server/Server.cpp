@@ -10,12 +10,13 @@ struct thread_data_t {
     int enemy_board[10][10];
     bool has_our_board = false;
     bool has_enemy_board = false;
+    bool game_started = false;
 };
 
 // reusable write function with mutex, nothing special at all
 void Write(char *message, int descriptor) {
     write(descriptor, message, 256);
-    printf("%s",message);
+    printf("%s", message);
 }
 
 // thread for a player
@@ -29,7 +30,7 @@ void *PlayerThread(void *t_data) {
             (*th_data).message[i] = (*th_data).rcvd[0];
             (*th_data).message_length = i + 1;
         }
-        printf("%s",  (*th_data).message);
+        printf("%s", (*th_data).message);
 
 
         // this is where the fun begins
@@ -38,7 +39,12 @@ void *PlayerThread(void *t_data) {
         //       sizeof(char) * 5); // len(mine headers) = 5, mine headers: check:, Player, board:
 
 
-        if (strstr((*th_data).message, "Player") != NULL) // while connecting- receive player name and send to enemy
+
+        if (strstr((*th_data).message, "Player") != NULL) // error of end of game- end of thread
+        {
+            pthread_exit(NULL);
+        } else if (strstr((*th_data).message, "Player") !=
+                   NULL) // while connecting- receive player name and send to enemy
         {
             char *enemy_message = (char *) malloc(sizeof(char) * ((*th_data).message_length) + 6);
 
@@ -47,7 +53,8 @@ void *PlayerThread(void *t_data) {
 
             Write(enemy_message, (*th_data).enemy_descriptor);
             free(enemy_message);
-        } else if (strstr((*th_data).message, "board") != NULL && !(*th_data).has_our_board) // send board initial state from player
+        } else if (strstr((*th_data).message, "board") != NULL &&
+                   !(*th_data).has_our_board) // send board initial state from player
         {
             // TODO: handle sending board to enemy in smarter way, this is kinda stupid
             Write((*th_data).message, (*th_data).enemy_descriptor);
@@ -57,7 +64,8 @@ void *PlayerThread(void *t_data) {
                 }
             }
             (*th_data).has_our_board = true;
-        } else if (strstr((*th_data).message, "boare") != NULL && !(*th_data).has_enemy_board) // send board initial state from enemy
+        } else if (strstr((*th_data).message, "boare") != NULL &&
+                   !(*th_data).has_enemy_board) // send board initial state from enemy
         {
             for (int i = 0; i < 10; i++) {
                 for (int j = 0; j < 10; j++) {
@@ -67,14 +75,36 @@ void *PlayerThread(void *t_data) {
             (*th_data).has_enemy_board = true;
         } else if (strstr((*th_data).message, "check") != NULL) // check field chosen by player
         {
-           
 
-        } else if ((*th_data).has_enemy_board && (*th_data).has_our_board) {
+
+        } else if ((*th_data).has_enemy_board && (*th_data).has_our_board &&
+                   !(*th_data).game_started) { // when we have board from enemy and ourselves
             char *start_message = (char *) malloc(sizeof(char) * 6);
             strcpy(start_message, "start");
             Write(start_message, (*th_data).player_descriptor);
             Write(start_message, (*th_data).enemy_descriptor);
             free(start_message);
+            (*th_data).game_started = true;
+        } else if ((*th_data).game_started) { // when our ships are destroyed- sum of array is 0
+            int *sum = (int *) malloc(sizeof(int));
+            for (int i = 0; i < 10; i++) {
+                for (int j = 0; j < 10; j++) {
+                    sum += (*th_data).our_board[i][j];
+                }
+            }
+            if(sum == 0) { //send lose to player and win to enemy
+                char *lose_message = (char *) malloc(sizeof(char) * 6);
+                strcpy(lose_message, "lose\n");
+                Write(lose_message, (*th_data).player_descriptor);
+                free(lose_message);
+
+                char *win_message = (char *) malloc(sizeof(char) * 6);
+                strcpy(win_message, "won\n");
+                Write(win_message, (*th_data).enemy_descriptor);
+                free(win_message);
+            }
+            free(sum);
+
         }
         // free(messageHeader);
 
