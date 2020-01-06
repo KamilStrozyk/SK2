@@ -1,21 +1,21 @@
 #include "Server.h"
 
 struct thread_data_t {
-    int player1_descriptor;
-    int player2_descriptor;
+    int player_descriptor;
+    int enemy_descriptor;
     char message[256];
     char rcvd[2];
-    //char sent_message[256];
+    int board[10][10];
 };
 
 // reusable write function with mutex, nothing special at all
 void Write(char *message, int descriptor) {
     //pthread_detach(pthread_self());
     //struct thread_data_t *th_data = (struct thread_data_t *) t_data;
- //   while (1) {
-        //scanf("%s", (*th_data).sent_message);
-        //(*th_data).sent_message[strlen((*th_data).sent_message)] = '\n';
-        write(descriptor, message, strlen(message));
+    //   while (1) {
+    //scanf("%s", (*th_data).sent_message);
+    //(*th_data).sent_message[strlen((*th_data).sent_message)] = '\n';
+    write(descriptor, message, strlen(message));
     //}
 
 }
@@ -24,29 +24,37 @@ void Write(char *message, int descriptor) {
 void *PlayerThread(void *t_data) {
     pthread_detach(pthread_self());
     struct thread_data_t *th_data = (struct thread_data_t *) t_data;
+    // reading byte after byte
     while (1) {
-        for (int i = 0; (*th_data).rcvd[0] != '\n'; i++)
-        {
-            read((*th_data).player1_descriptor, (*th_data).rcvd, 1);
+        for (int i = 0; (*th_data).rcvd[0] != '\n'; i++) {
+            read((*th_data).player_descriptor, (*th_data).rcvd, 1);
             (*th_data).message[i] = (*th_data).rcvd[0];
         }
+        // cleaning buffers
         (*th_data).rcvd[0] = 0;
         printf("%s", (*th_data).message);
         memset((*th_data).message, 0, (sizeof(char)) * 256);
-        Write("enemy: Hitler\n", (*th_data).player1_descriptor);
+
+        // this is where the fun begins
+        // message interpretation
+        char messageHeader[5] // len(mine headers) = 5, mine headers: check:, Player, board:
+        if(strncpy())
+       // Write("enemy: Hitler\n", (*th_data).player_descriptor);
     }
     pthread_exit(NULL);
 }
 
 // prepare game and threads for players
-void handleConnection(int player1_descriptor) {
+void handleConnection(int player_descriptor, int enemy_descriptor) {
     int create_result = 0;
 
     pthread_t player_thread;
 
     thread_data_t *t_data = (thread_data_t *) malloc(sizeof(thread_data_t));
 
-    t_data->player1_descriptor = player1_descriptor;
+    t_data->player_descriptor = player_descriptor;
+    t_data->enemy_descriptor = enemy_descriptor;
+
     create_result = pthread_create(&player_thread, NULL, PlayerThread, (void *) t_data);
 
     if (create_result) {
@@ -60,6 +68,8 @@ int main(int argc, char *argv[]) {
     int connection_socket_descriptor;
     int bind_result;
     int listen_result;
+    int game_pair_descriptors[2];
+    int game_pair_counter = 0;
     char reuse_addr_val = 1;
     struct sockaddr_in server_address;
 
@@ -93,8 +103,14 @@ int main(int argc, char *argv[]) {
             fprintf(stderr, "%s: Error during creation connection socket\n", argv[0]);
             exit(1);
         }
-
-        handleConnection(connection_socket_descriptor);
+        // grouping players to game
+        game_pair_descriptors[game_pair_counter++] = connection_socket_descriptor;
+        if (game_pair_counter == 2) {
+            // threads for both players, we're sending player and enemy descriptor
+            handleConnection(game_pair_descriptors[0], game_pair_descriptors[1]);
+            handleConnection(game_pair_descriptors[1], game_pair_descriptors[0]);
+            game_pair_counter = 0;
+        }
     }
 
     close(server_socket_descriptor);

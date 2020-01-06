@@ -115,7 +115,7 @@ public class Controller {
         // waiting for enemyfsfs
         private void waitForEnemy() {
             boolean enemyChosen = false;
-            String clientMessage = "Player:" + playerNameTextField.getText() + "\n";
+            String clientMessage = "Player" + playerNameTextField.getText() + "\n";
             send(clientMessage);
             setWaitingMessage(true);
             while (!enemyChosen) {
@@ -340,7 +340,7 @@ public class Controller {
                                         changeColorOfCell("green", Integer.toString(y - 1) + Integer.toString(x - 1), ourBoard);
                                         boardToSent[y - 1][x - 1] = 1;
 
-                                        String clientMessage = "board";
+                                        String clientMessage = "board:";
                                         for (int i = 0; i < 10; i++) {
                                             for (int j = 0; j < 10; j++) {
                                                 clientMessage += Integer.toString(boardToSent[i][j]);
@@ -378,7 +378,7 @@ public class Controller {
                             }
 
                             private void sendHitToServer(int y, int x) {
-                                String clientMessage = "check" + Integer.toString(x - 1) + Integer.toString(y - 1) + "\n";
+                                String clientMessage = "check:" + Integer.toString(x - 1) + Integer.toString(y - 1) + "\n";
                                 send(clientMessage);
                                 setWaitingMessage(true);
                             }
