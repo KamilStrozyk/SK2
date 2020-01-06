@@ -112,17 +112,11 @@ public class Controller {
             gameLoop();
         }
 
-        // waiting for enemy
+        // waiting for enemyfsfs
         private void waitForEnemy() {
             boolean enemyChosen = false;
-            String clientMessage = "Player:" + playerNameTextField.getText()+"\n";
-            PrintWriter writer = null;
-            try {
-                writer = new PrintWriter(socket.getOutputStream(), true);
-                writer.println(clientMessage);
-            } catch (IOException e) {
-                writingError();
-            }
+            String clientMessage = "Player:" + playerNameTextField.getText() + "\n";
+            send(clientMessage);
             setWaitingMessage(true);
             while (!enemyChosen) {
                 try {
@@ -133,9 +127,20 @@ public class Controller {
                         enemyChosen = true;
                         setWaitingMessage(false);
                     }
+                    //send("Received/n");
                 } catch (Exception e) {
                     readingError();
                 }
+            }
+        }
+
+        // send to server
+        private void send(String clientMessage) {
+            try {
+                PrintWriter writer = new PrintWriter(socket.getOutputStream(), true);
+                writer.println(clientMessage);
+            } catch (IOException e) {
+                writingError();
             }
         }
 
@@ -341,14 +346,8 @@ public class Controller {
                                                 clientMessage += Integer.toString(boardToSent[i][j]);
                                             }
                                         }
-                                        clientMessage +="\n";
-                                        PrintWriter writer = null;
-                                        try {
-                                            writer = new PrintWriter(socket.getOutputStream(), true);
-                                            writer.println(clientMessage);
-                                        } catch (IOException e) {
-                                            writingError();
-                                        }
+                                        clientMessage += "\n";
+                                        send(clientMessage);
                                         ourBoard.setDisable(true);
                                         setWaitingMessage(true);
                                     }
@@ -379,14 +378,8 @@ public class Controller {
                             }
 
                             private void sendHitToServer(int y, int x) {
-                                String clientMessage = "check" + Integer.toString(x - 1) + Integer.toString(y - 1)+"\n";
-                                PrintWriter writer = null;
-                                try {
-                                    writer = new PrintWriter(socket.getOutputStream(), true);
-                                    writer.println(clientMessage);
-                                } catch (IOException e) {
-                                    writingError();
-                                }
+                                String clientMessage = "check" + Integer.toString(x - 1) + Integer.toString(y - 1) + "\n";
+                                send(clientMessage);
                                 setWaitingMessage(true);
                             }
                         });
