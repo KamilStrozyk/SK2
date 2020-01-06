@@ -41,7 +41,7 @@ void handleConnection(int connection_socket_descriptor) {
     create_result = pthread_create(&reading_thread, NULL, ReadThread, (void *) t_data);
     create_result = pthread_create(&writing_thread, NULL, WriteThread, (void *) t_data);
     if (create_result) {
-        printf("Błąd przy próbie utworzenia wątku, kod błędu: %d\n", create_result);
+        printf("Error during thread creation, code: %d\n", create_result);
         exit(-1);
     }
 }
