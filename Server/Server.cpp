@@ -1,9 +1,10 @@
 #include "Server.h"
 
 struct thread_data_t {
-    int descriptor_no;
-    char rcvd_message[1024];
-    char sent_message[1024];
+    int player1_descriptor;
+    int player2_descriptor;
+    char rcvd_message[256];
+    char sent_message[256];
 };
 
 void *ReadThread(void *t_data) {

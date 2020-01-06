@@ -106,9 +106,9 @@ public class Controller {
         @Override
         public void run() {
             waitForEnemy();
-            waitForStart();
             prepareOurBoard();
             prepareEnemyBoard();
+            waitForStart();
             gameLoop();
         }
 
