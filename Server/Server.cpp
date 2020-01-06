@@ -67,6 +67,7 @@ void *PlayerThread(void *t_data) {
             (*th_data).has_enemy_board = true;
         } else if (strstr((*th_data).message, "check") != NULL) // check field chosen by player
         {
+           
 
         } else if ((*th_data).has_enemy_board && (*th_data).has_our_board) {
             char *start_message = (char *) malloc(sizeof(char) * 6);

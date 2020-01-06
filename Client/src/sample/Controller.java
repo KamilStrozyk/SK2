@@ -68,7 +68,7 @@ public class Controller {
     }
 
     // resetting app after error or end of game
-    private void reset() {
+    private void end() {
         try {
             clientSocket.close();
         } catch (IOException e) {
@@ -473,7 +473,8 @@ public class Controller {
                 alert.setHeaderText("There was an error during reading from the server. The game will be closed");
                 alert.showAndWait();
             });
-            reset();
+            send("end\n");
+            end();
         }
 
         // popup for error in writing
@@ -484,7 +485,8 @@ public class Controller {
                 alert.setHeaderText("There was an error during writing to the server. The game will be closed");
                 alert.showAndWait();
             });
-            reset();
+            send("end\n");
+            end();
         }
 
         // popup for server error in
@@ -494,7 +496,8 @@ public class Controller {
                 alert.setTitle("Error");
                 alert.setHeaderText("There was unexpected server error. The game will be closed");
                 alert.showAndWait();
-                reset();
+                send("end\n");
+                end();
             });
         }
 
@@ -505,7 +508,10 @@ public class Controller {
                 alert.setTitle("Game Info");
                 alert.setHeaderText(message);
                 alert.showAndWait();
-                if (message.contains("won") || message.contains("lost")) reset();
+                if (message.contains("won") || message.contains("lost")) {
+                    send("end\n");
+                    end();
+                }
             });
         }
 
