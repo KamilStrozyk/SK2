@@ -3,46 +3,54 @@
 struct thread_data_t {
     int player1_descriptor;
     int player2_descriptor;
-    char rcvd_message[256];
-    char sent_message[256];
+    char message[256];
+    char rcvd[2];
+    //char sent_message[256];
 };
 
-void *ReadThread(void *t_data) {
+// reusable write function with mutex, nothing special at all
+void Write(char *message, int descriptor) {
+    //pthread_detach(pthread_self());
+    //struct thread_data_t *th_data = (struct thread_data_t *) t_data;
+ //   while (1) {
+        //scanf("%s", (*th_data).sent_message);
+        //(*th_data).sent_message[strlen((*th_data).sent_message)] = '\n';
+        write(descriptor, message, strlen(message));
+    //}
+
+}
+
+// thread for a player
+void *PlayerThread(void *t_data) {
     pthread_detach(pthread_self());
     struct thread_data_t *th_data = (struct thread_data_t *) t_data;
     while (1) {
-        int data = read((*th_data).descriptor_no, (*th_data).rcvd_message, 512);
-        printf("%s", (*th_data).rcvd_message);
-        memset((*th_data).rcvd_message, 0, (sizeof (char))*1024);
+        for (int i = 0; (*th_data).rcvd[0] != '\n'; i++)
+        {
+            read((*th_data).player1_descriptor, (*th_data).rcvd, 1);
+            (*th_data).message[i] = (*th_data).rcvd[0];
+        }
+        (*th_data).rcvd[0] = 0;
+        printf("%s", (*th_data).message);
+        memset((*th_data).message, 0, (sizeof(char)) * 256);
+        Write("enemy: Hitler\n", (*th_data).player1_descriptor);
     }
     pthread_exit(NULL);
 }
 
-void *WriteThread(void *t_data) {
-    pthread_detach(pthread_self());
-    struct thread_data_t *th_data = (struct thread_data_t *) t_data;
-    while (1) {
-        scanf("%s", (*th_data).sent_message);
-        (*th_data).sent_message[strlen((*th_data).sent_message)] = '\n';
-        write((*th_data).descriptor_no, (*th_data).sent_message, strlen((*th_data).sent_message));
-    }
-    pthread_exit(NULL);
-}
-
-
-void handleConnection(int connection_socket_descriptor) {
+// prepare game and threads for players
+void handleConnection(int player1_descriptor) {
     int create_result = 0;
 
-    pthread_t reading_thread;
-    pthread_t writing_thread;
+    pthread_t player_thread;
 
     thread_data_t *t_data = (thread_data_t *) malloc(sizeof(thread_data_t));
 
-    t_data->descriptor_no = connection_socket_descriptor;
-    create_result = pthread_create(&reading_thread, NULL, ReadThread, (void *) t_data);
-    create_result = pthread_create(&writing_thread, NULL, WriteThread, (void *) t_data);
+    t_data->player1_descriptor = player1_descriptor;
+    create_result = pthread_create(&player_thread, NULL, PlayerThread, (void *) t_data);
+
     if (create_result) {
-        printf("Error during thread creation, code: %d\n", create_result);
+        printf("Error during player thread creation, code: %d\n", create_result);
         exit(-1);
     }
 }
