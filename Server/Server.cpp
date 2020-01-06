@@ -11,12 +11,17 @@ struct thread_data_t {
     bool has_our_board = false;
     bool has_enemy_board = false;
     bool game_started = false;
+    bool first_turn_ours = false;
 };
+
+pthread_mutex_t lock;
 
 // reusable write function with mutex, nothing special at all
 void Write(char *message, int descriptor) {
+    pthread_mutex_lock(&lock);
     write(descriptor, message, 256);
     printf("%s", message);
+    pthread_mutex_unlock(&lock);
 }
 
 // thread for a player
@@ -40,7 +45,7 @@ void *PlayerThread(void *t_data) {
 
 
 
-        if (strstr((*th_data).message, "Player") != NULL) // error of end of game- end of thread
+        if (strstr((*th_data).message, "end") != NULL) // error of end of game- end of thread
         {
             pthread_exit(NULL);
         } else if (strstr((*th_data).message, "Player") !=
@@ -92,7 +97,7 @@ void *PlayerThread(void *t_data) {
                     sum += (*th_data).our_board[i][j];
                 }
             }
-            if(sum == 0) { //send lose to player and win to enemy
+            if (sum == 0) { //send lose to player and win to enemy
                 char *lose_message = (char *) malloc(sizeof(char) * 6);
                 strcpy(lose_message, "lose\n");
                 Write(lose_message, (*th_data).player_descriptor);
@@ -116,7 +121,7 @@ void *PlayerThread(void *t_data) {
 }
 
 // prepare game and threads for players
-void handleConnection(int player_descriptor, int enemy_descriptor) {
+void handleConnection(int player_descriptor, int enemy_descriptor, bool first_turn_ours) {
     int create_result = 0;
 
     pthread_t player_thread;
@@ -125,6 +130,7 @@ void handleConnection(int player_descriptor, int enemy_descriptor) {
 
     t_data->player_descriptor = player_descriptor;
     t_data->enemy_descriptor = enemy_descriptor;
+    t.data->first_turn_ours = first_turn_ours;
 
     create_result = pthread_create(&player_thread, NULL, PlayerThread, (void *) t_data);
 
@@ -148,6 +154,12 @@ int main(int argc, char *argv[]) {
     server_address.sin_family = AF_INET;
     server_address.sin_addr.s_addr = htonl(INADDR_ANY);
     server_address.sin_port = htons(SERVER_PORT);
+
+    if (pthread_mutex_init(&lock, NULL) != 0) {
+        printf("%s: Mutex init failed\n", argv[0]);
+        exit(1);
+    }
+    //pthread_mutex_unlock(&lock);
 
     server_socket_descriptor = socket(AF_INET, SOCK_STREAM, 0);
     if (server_socket_descriptor < 0) {
@@ -178,8 +190,8 @@ int main(int argc, char *argv[]) {
         game_pair_descriptors[game_pair_counter++] = connection_socket_descriptor;
         if (game_pair_counter == 2) {
             // threads for both players, we're sending player and enemy descriptor
-            handleConnection(game_pair_descriptors[0], game_pair_descriptors[1]);
-            handleConnection(game_pair_descriptors[1], game_pair_descriptors[0]);
+            handleConnection(game_pair_descriptors[0], game_pair_descriptors[1], true);
+            handleConnection(game_pair_descriptors[1], game_pair_descriptors[0]), false;
             game_pair_counter = 0;
         }
     }
