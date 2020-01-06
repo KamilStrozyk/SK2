@@ -155,6 +155,9 @@ public class Controller {
                         gameInfo("Game started!");
                         setWaitingMessage(false);
                         return;
+                    } else if (serverMessage.contains("board")) {
+                        String clientMessage = "boare" + serverMessage.substring(5);
+                        send(clientMessage);
                     }
                 } catch (Exception e) {
                     readingError();

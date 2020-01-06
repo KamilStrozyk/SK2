@@ -18,7 +18,7 @@
 #include <time.h>
 #include <pthread.h>
 
-#define SERVER_PORT 4321
+#define SERVER_PORT 4444
 #define QUEUE_SIZE 5
 
 #endif //SERVER_SERVER_H

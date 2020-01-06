@@ -6,19 +6,16 @@ struct thread_data_t {
     char message[256];
     int message_length;
     char rcvd[2];
-    int board[10][10];
+    int our_board[10][10];
+    int enemy_board[10][10];
+    bool has_our_board = false;
+    bool has_enemy_board = false;
 };
 
 // reusable write function with mutex, nothing special at all
 void Write(char *message, int descriptor) {
-    //pthread_detach(pthread_self());
-    //struct thread_data_t *th_data = (struct thread_data_t *) t_data;
-    //   while (1) {
-    //scanf("%s", (*th_data).sent_message);
-    //(*th_data).sent_message[strlen((*th_data).sent_message)] = '\n';
-    write(descriptor, message, strlen(message));
-    //}
-
+    write(descriptor, message, 256);
+    printf("%s",message);
 }
 
 // thread for a player
@@ -32,6 +29,7 @@ void *PlayerThread(void *t_data) {
             (*th_data).message[i] = (*th_data).rcvd[0];
             (*th_data).message_length = i + 1;
         }
+        printf("%s",  (*th_data).message);
 
 
         // this is where the fun begins
@@ -46,16 +44,36 @@ void *PlayerThread(void *t_data) {
 
             strcpy(enemy_message, "enemy:");
             for (int i = 6; i < (*th_data).message_length; i++) enemy_message[i] = (*th_data).message[i];
-            printf("%s", enemy_message);
 
-            Write(enemy_message, (*th_data).player_descriptor);
+            Write(enemy_message, (*th_data).enemy_descriptor);
             free(enemy_message);
-        } else if (strstr((*th_data).message, "board") != NULL) // send board initial state from player
+        } else if (strstr((*th_data).message, "board") != NULL && !(*th_data).has_our_board) // send board initial state from player
         {
-
+            // TODO: handle sending board to enemy in smarter way, this is kinda stupid
+            Write((*th_data).message, (*th_data).enemy_descriptor);
+            for (int i = 0; i < 10; i++) {
+                for (int j = 0; j < 10; j++) {
+                    (*th_data).our_board[i][j] = (*th_data).message[i + j + 6];
+                }
+            }
+            (*th_data).has_our_board = true;
+        } else if (strstr((*th_data).message, "boare") != NULL && !(*th_data).has_enemy_board) // send board initial state from enemy
+        {
+            for (int i = 0; i < 10; i++) {
+                for (int j = 0; j < 10; j++) {
+                    (*th_data).enemy_board[i][j] = (*th_data).message[i + j + 6];
+                }
+            }
+            (*th_data).has_enemy_board = true;
         } else if (strstr((*th_data).message, "check") != NULL) // check field chosen by player
         {
 
+        } else if ((*th_data).has_enemy_board && (*th_data).has_our_board) {
+            char *start_message = (char *) malloc(sizeof(char) * 6);
+            strcpy(start_message, "start");
+            Write(start_message, (*th_data).player_descriptor);
+            Write(start_message, (*th_data).enemy_descriptor);
+            free(start_message);
         }
         // free(messageHeader);
 
