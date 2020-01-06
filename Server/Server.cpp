@@ -4,6 +4,7 @@ struct thread_data_t {
     int player_descriptor;
     int enemy_descriptor;
     char message[256];
+    int message_length;
     char rcvd[2];
     int board[10][10];
 };
@@ -29,17 +30,38 @@ void *PlayerThread(void *t_data) {
         for (int i = 0; (*th_data).rcvd[0] != '\n'; i++) {
             read((*th_data).player_descriptor, (*th_data).rcvd, 1);
             (*th_data).message[i] = (*th_data).rcvd[0];
+            (*th_data).message_length = i + 1;
         }
-        // cleaning buffers
-        (*th_data).rcvd[0] = 0;
-        printf("%s", (*th_data).message);
-        memset((*th_data).message, 0, (sizeof(char)) * 256);
+
 
         // this is where the fun begins
         // message interpretation
-        char messageHeader[5] // len(mine headers) = 5, mine headers: check:, Player, board:
-        if(strncpy())
-       // Write("enemy: Hitler\n", (*th_data).player_descriptor);
+        //char *messageHeader = (char *) malloc(
+        //       sizeof(char) * 5); // len(mine headers) = 5, mine headers: check:, Player, board:
+
+
+        if (strstr((*th_data).message, "Player") != NULL) // while connecting- receive player name and send to enemy
+        {
+            char *enemy_message = (char *) malloc(sizeof(char) * ((*th_data).message_length) + 6);
+
+            strcpy(enemy_message, "enemy:");
+            for (int i = 6; i < (*th_data).message_length; i++) enemy_message[i] = (*th_data).message[i];
+            printf("%s", enemy_message);
+
+            Write(enemy_message, (*th_data).player_descriptor);
+            free(enemy_message);
+        } else if (strstr((*th_data).message, "board") != NULL) // send board initial state from player
+        {
+
+        } else if (strstr((*th_data).message, "check") != NULL) // check field chosen by player
+        {
+
+        }
+        // free(messageHeader);
+
+        // cleaning buffers
+        (*th_data).rcvd[0] = 0;
+        memset((*th_data).message, 0, (sizeof(char)) * 256);
     }
     pthread_exit(NULL);
 }
