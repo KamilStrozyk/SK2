@@ -381,7 +381,7 @@ public class Controller {
                             }
 
                             private void sendHitToServer(int y, int x) {
-                                String clientMessage = "check:" + Integer.toString(x - 1) + Integer.toString(y - 1) + "\n";
+                                String clientMessage = "check" + Integer.toString(x - 1) + Integer.toString(y - 1) + "\n";
                                 send(clientMessage);
                                 setWaitingMessage(true);
                             }
