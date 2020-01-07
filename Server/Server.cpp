@@ -24,6 +24,19 @@ void Write(char *message, int descriptor) {
     pthread_mutex_unlock(&lock);
 }
 
+// reusable turn message
+void SetTurnMessage(int turn_descriptor, int not_turn_descriptor) {
+    char *turn_message = (char *) malloc(sizeof(char) * 9);
+    strcpy(turn_message, "ourturn\n");
+    Write(turn_message, turn_descriptor);
+    free(turn_message);
+
+    char *not_turn_message = (char *) malloc(sizeof(char) * 9);
+    strcpy(not_turn_message, "turn\n");
+    Write(not_turn_message, not_turn_descriptor);
+    free(not_turn_message);
+}
+
 // thread for a player
 void *PlayerThread(void *t_data) {
     pthread_detach(pthread_self());
@@ -80,6 +93,18 @@ void *PlayerThread(void *t_data) {
             (*th_data).has_enemy_board = true;
         } else if (strstr((*th_data).message, "check") != NULL) // check field chosen by player
         {
+            //point coords
+            int x = (*th_data).message[5] - '0';
+            int y = (*th_data).message[6] - '0';
+            // 0- nothing/sank; <1;4> ships ; <5;8> hit ships
+            if ((*th_data).enemy_board[x][y] == 0) {
+
+                SetTurnMessage((*th_data).enemy_descriptor, (*th_data).player_descriptor);
+            } else if ((*th_data).enemy_board[x][y] >0) {
+
+
+                SetTurnMessage((*th_data).player_descriptor, (*th_data).enemy_descriptor);
+            }
 
 
         } else if ((*th_data).has_enemy_board && (*th_data).has_our_board &&
@@ -90,28 +115,32 @@ void *PlayerThread(void *t_data) {
             Write(start_message, (*th_data).enemy_descriptor);
             free(start_message);
             (*th_data).game_started = true;
+
+            //set first turn
+            if ((*th_data).first_turn_ours) {
+                SetTurnMessage((*th_data).player_descriptor, (*th_data).enemy_descriptor);
+            }
+
         } else if ((*th_data).game_started) { // when our ships are destroyed- sum of array is 0
             int *sum = (int *) malloc(sizeof(int));
             for (int i = 0; i < 10; i++) {
                 for (int j = 0; j < 10; j++) {
-                    sum += (*th_data).our_board[i][j];
+                    sum += (*th_data).enemy_board[i][j];
                 }
             }
             if (sum == 0) { //send lose to player and win to enemy
                 char *lose_message = (char *) malloc(sizeof(char) * 6);
                 strcpy(lose_message, "lose\n");
-                Write(lose_message, (*th_data).player_descriptor);
+                Write(lose_message, (*th_data).enemy_descriptor);
                 free(lose_message);
 
                 char *win_message = (char *) malloc(sizeof(char) * 6);
                 strcpy(win_message, "won\n");
-                Write(win_message, (*th_data).enemy_descriptor);
+                Write(win_message, (*th_data).player_descriptor);
                 free(win_message);
             }
             free(sum);
-
         }
-        // free(messageHeader);
 
         // cleaning buffers
         (*th_data).rcvd[0] = 0;
@@ -130,7 +159,7 @@ void handleConnection(int player_descriptor, int enemy_descriptor, bool first_tu
 
     t_data->player_descriptor = player_descriptor;
     t_data->enemy_descriptor = enemy_descriptor;
-    t.data->first_turn_ours = first_turn_ours;
+    t_data->first_turn_ours = first_turn_ours;
 
     create_result = pthread_create(&player_thread, NULL, PlayerThread, (void *) t_data);
 
@@ -159,7 +188,6 @@ int main(int argc, char *argv[]) {
         printf("%s: Mutex init failed\n", argv[0]);
         exit(1);
     }
-    //pthread_mutex_unlock(&lock);
 
     server_socket_descriptor = socket(AF_INET, SOCK_STREAM, 0);
     if (server_socket_descriptor < 0) {
@@ -191,7 +219,7 @@ int main(int argc, char *argv[]) {
         if (game_pair_counter == 2) {
             // threads for both players, we're sending player and enemy descriptor
             handleConnection(game_pair_descriptors[0], game_pair_descriptors[1], true);
-            handleConnection(game_pair_descriptors[1], game_pair_descriptors[0]), false;
+            handleConnection(game_pair_descriptors[1], game_pair_descriptors[0], false);
             game_pair_counter = 0;
         }
     }
