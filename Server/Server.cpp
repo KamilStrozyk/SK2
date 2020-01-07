@@ -3,6 +3,8 @@
 struct thread_data_t {
     int player_descriptor;
     int enemy_descriptor;
+    int sum;
+    char message_to_send[256];
     char message[256];
     int message_length;
     char rcvd[2];
@@ -25,16 +27,81 @@ void Write(char *message, int descriptor) {
 }
 
 // reusable turn message
-void SetTurnMessage(int turn_descriptor, int not_turn_descriptor) {
-    char *turn_message = (char *) malloc(sizeof(char) * 9);
-    strcpy(turn_message, "ourturn\n");
-    Write(turn_message, turn_descriptor);
-    //free(turn_message);
+void SetTurnMessage(int turn_descriptor, int not_turn_descriptor, thread_data_t *th_data) {
 
-    char *not_turn_message = (char *) malloc(sizeof(char) * 9);
-    strcpy(not_turn_message, "turn\n");
-    Write(not_turn_message, not_turn_descriptor);
-    //free(not_turn_message);
+
+    strcpy((*th_data).message_to_send, "ourturn\n");
+    Write((*th_data).message_to_send, turn_descriptor);
+    memset((*th_data).message_to_send, 0, (sizeof(char)) * 256);
+
+
+    strcpy((*th_data).message_to_send, "turn\n");
+    Write((*th_data).message_to_send, not_turn_descriptor);
+    memset((*th_data).message_to_send, 0, (sizeof(char)) * 256);
+
+}
+
+// Omiss to enemy, miss to our
+void MarkMiss(thread_data_t *th_data, int x, int y) {
+    strcpy((*th_data).message_to_send, "miss");
+    for (int i = 5; i <= 6; i++)(*th_data).message_to_send[i - 1] = (*th_data).message[i];
+    Write((*th_data).message_to_send, (*th_data).player_descriptor);
+    memset((*th_data).message_to_send, 0, (sizeof(char)) * 256);
+
+
+    strcpy((*th_data).message_to_send, "Omiss");
+    for (int i = 5; i <= 6; i++) (*th_data).message_to_send[i] = (*th_data).message[i];
+    Write((*th_data).message_to_send, (*th_data).enemy_descriptor);
+    memset((*th_data).message_to_send, 0, (sizeof(char)) * 256);
+
+    SetTurnMessage((*th_data).enemy_descriptor, (*th_data).player_descriptor, th_data);
+}
+
+void MarkSink(thread_data_t *th_data, int x, int y) {
+    // Osink to enemy, sink to our
+    strcpy((*th_data).message_to_send, "sink");
+    for (int i = 5; i <= 6; i++)(*th_data).message_to_send[i - 1] = (*th_data).message[i];
+    Write((*th_data).message_to_send, (*th_data).player_descriptor);
+    memset((*th_data).message_to_send, 0, (sizeof(char)) * 256);
+
+
+    strcpy((*th_data).message_to_send, "Osink");
+    for (int i = 5; i <= 6; i++) (*th_data).message_to_send[i] = (*th_data).message[i];
+    Write((*th_data).message_to_send, (*th_data).enemy_descriptor);
+    memset((*th_data).message_to_send, 0, (sizeof(char)) * 256);
+
+
+    (*th_data).enemy_board[x][y] = 0;
+    SetTurnMessage((*th_data).player_descriptor, (*th_data).enemy_descriptor, th_data);
+}
+
+void CheckSink(thread_data_t *th_data, int x, int y, int value) {
+    //for(int i = 0)
+    if (x > 0 && (*th_data).enemy_board[x - 1][y] == value) {
+
+        CheckSink(th_data, x - 1, y, value);
+    }
+
+}
+
+// Ohit to enemy, hit to our
+void MarkHit(thread_data_t *th_data, int x, int y) {
+    strcpy((*th_data).message_to_send, "hit");
+    for (int i = 5; i <= 6; i++) (*th_data).message_to_send[i - 2] = (*th_data).message[i];
+    Write((*th_data).message_to_send, (*th_data).player_descriptor);
+    memset((*th_data).message_to_send, 0, (sizeof(char)) * 256);
+
+    strcpy((*th_data).message_to_send, "Ohit");
+    for (int i = 5; i <= 6; i++)(*th_data).message_to_send[i - 1] = (*th_data).message[i];
+    Write((*th_data).message_to_send, (*th_data).enemy_descriptor);
+    memset((*th_data).message_to_send, 0, (sizeof(char)) * 256);
+
+    (*th_data).enemy_board[x][y] += 1;
+//  checking sink
+
+    CheckSink(th_data, x, y, (*th_data).enemy_board[x][y]);
+
+    SetTurnMessage((*th_data).player_descriptor, (*th_data).enemy_descriptor, th_data);
 }
 
 // thread for a player
@@ -48,7 +115,8 @@ void *PlayerThread(void *t_data) {
             (*th_data).message[i] = (*th_data).rcvd[0];
             (*th_data).message_length = i + 1;
         }
-        printf("%s", (*th_data).message);
+        printf("Message:%s", (*th_data).message);
+        printf("desc:%d;%d", (*th_data).player_descriptor, (*th_data).enemy_descriptor);
 
 
         // this is where the fun begins
@@ -59,19 +127,20 @@ void *PlayerThread(void *t_data) {
         }
         if (strstr((*th_data).message, "error") != NULL) // error - end of thread
         {
-            Write((*th_data).message, (*th_data).enemy_descriptor);
+            Write((*th_data).message_to_send, (*th_data).enemy_descriptor);
             pthread_exit(NULL);
         }
         if (strstr((*th_data).message, "Player") !=
             NULL) // while connecting- receive player name and send to enemy
         {
-            char *enemy_message = (char *) malloc(sizeof(char) * ((*th_data).message_length) + 6);
 
-            strcpy(enemy_message, "enemy:");
-            for (int i = 6; i < (*th_data).message_length; i++) enemy_message[i] = (*th_data).message[i];
 
-            Write(enemy_message, (*th_data).enemy_descriptor);
-            //free(enemy_message);
+            strcpy((*th_data).message_to_send, "enemy:");
+            for (int i = 6; i < (*th_data).message_length; i++) (*th_data).message_to_send[i] = (*th_data).message[i];
+
+            Write((*th_data).message_to_send, (*th_data).enemy_descriptor);
+            memset((*th_data).message_to_send, 0, (sizeof(char)) * 256);
+
         }
         if (strstr((*th_data).message, "board") != NULL &&
             !(*th_data).has_our_board) // send board initial state from player
@@ -83,6 +152,11 @@ void *PlayerThread(void *t_data) {
         if (strstr((*th_data).message, "boare") != NULL &&
             !(*th_data).has_enemy_board) // send board initial state from enemy
         {
+            for (int i = 0; i < 10; i++) {
+                for (int j = 0; j < 10; j++) {
+                    (*th_data).enemy_board[j][i] = (*th_data).message[i * 10 + j + 6] - '0';
+                }
+            }
             (*th_data).has_enemy_board = true;
         }
         if (strstr((*th_data).message, "check") != NULL) // check field chosen by player
@@ -91,55 +165,13 @@ void *PlayerThread(void *t_data) {
             int y = (*th_data).message[5] - '0';
             int x = (*th_data).message[6] - '0';
             // 0- nothing/sank; <1;4> ships ; <5;8> hit ships
-            // printf("%d;%d;%d", x, y, (*th_data).enemy_board[x][y]);
-            if ((*th_data).enemy_board[x][y] == 0) {// Omiss to enemy, miss to our
-                char *miss_message = (char *) malloc(sizeof(char) * 9);
-                strcpy(miss_message, "miss");
-                for (int i = 5; i <= 6; i++) miss_message[i - 1] = (*th_data).message[i];
-                Write(miss_message, (*th_data).player_descriptor);
-                //free(miss_message);
-
-                char *Omiss_message = (char *) malloc(sizeof(char) * 9);
-                strcpy(Omiss_message, "Omiss");
-                for (int i = 5; i <= 6; i++) Omiss_message[i] = (*th_data).message[i];
-                Write(Omiss_message, (*th_data).enemy_descriptor);
-                //free(Omiss_message);
-                SetTurnMessage((*th_data).enemy_descriptor, (*th_data).player_descriptor);
-
-            } else if ((*th_data).enemy_board[x][y] >= 1) { // Osink to enemy, sink to our
-                char *sink_message = (char *) malloc(sizeof(char) * 9);
-                strcpy(sink_message, "sink");
-                for (int i = 5; i <= 6; i++) sink_message[i - 1] = (*th_data).message[i];
-                Write(sink_message, (*th_data).player_descriptor);
-                //free(sink_message);
-
-                char *Osink_message = (char *) malloc(sizeof(char) * 9);
-                strcpy(Osink_message, "Osink");
-                for (int i = 5; i <= 6; i++) Osink_message[i] = (*th_data).message[i];
-                Write(Osink_message, (*th_data).enemy_descriptor);
-                //free(Osink_message);
-
-                (*th_data).enemy_board[x][y] = 0;
-                SetTurnMessage((*th_data).player_descriptor, (*th_data).enemy_descriptor);
-
+            if ((*th_data).enemy_board[x][y] == 0) {
+                MarkMiss(th_data, x, y);
+            } else if ((*th_data).enemy_board[x][y] == 1) {
+                MarkSink(th_data, x, y);
             } else if ((*th_data).enemy_board[x][y] >= 2 &&
-                       (*th_data).enemy_board[x][y] <= 4) { // Ohit to enemy, hit to our
-                char *hit_message = (char *) malloc(sizeof(char) * 9);
-                strcpy(hit_message, "hit");
-                for (int i = 5; i <= 6; i++) hit_message[i - 2] = (*th_data).message[i];
-                Write(hit_message, (*th_data).player_descriptor);
-                //free(hit_message);
-
-                char *Ohit_message = (char *) malloc(sizeof(char) * 9);
-                strcpy(Ohit_message, "Ohit");
-                for (int i = 5; i <= 6; i++) Ohit_message[i - 1] = (*th_data).message[i];
-                Write(Ohit_message, (*th_data).enemy_descriptor);
-                //free(Ohit_message);
-
-                (*th_data).enemy_board[x][y] += 1;
-
-                SetTurnMessage((*th_data).player_descriptor, (*th_data).enemy_descriptor);
-
+                       (*th_data).enemy_board[x][y] <= 4) {
+                MarkHit(th_data, x, y);
             }
 
 
@@ -147,34 +179,42 @@ void *PlayerThread(void *t_data) {
         if ((*th_data).has_enemy_board && (*th_data).has_our_board && (*th_data).has_our_board &&
             (*th_data).first_turn_ours &&
             !(*th_data).game_started) { // when we have board from enemy and ourselves and we are first player
-            char *start_message = (char *) malloc(sizeof(char) * 6);
-            strcpy(start_message, "start");
-            Write(start_message, (*th_data).player_descriptor);
-            Write(start_message, (*th_data).enemy_descriptor);
-            //free(start_message);
+
+
+            strcpy((*th_data).message_to_send, "start");
+            Write((*th_data).message_to_send, (*th_data).player_descriptor);
+            Write((*th_data).message_to_send, (*th_data).enemy_descriptor);
+            memset((*th_data).message_to_send, 0, (sizeof(char)) * 256);
+
             (*th_data).game_started = true;
 
-            SetTurnMessage((*th_data).player_descriptor, (*th_data).enemy_descriptor);
+            SetTurnMessage((*th_data).player_descriptor, (*th_data).enemy_descriptor, th_data);
         }
-        if ((*th_data).game_started) { // when our ships are destroyed- sum of array is 0
-            int *sum = (int *) malloc(sizeof(int));
+        if ((*th_data).game_started && (*th_data).has_enemy_board &&
+            (*th_data).has_our_board) { // when our ships are destroyed- sum of array is 0
+            (*th_data).sum = 0;
             for (int i = 0; i < 10; i++) {
                 for (int j = 0; j < 10; j++) {
-                    sum += (*th_data).enemy_board[i][j];
+                    (*th_data).sum += (*th_data).enemy_board[i][j];
                 }
             }
-            if (sum == 0) { //send lose to player and win to enemy
-                char *lose_message = (char *) malloc(sizeof(char) * 6);
-                strcpy(lose_message, "lose");
-                Write(lose_message, (*th_data).enemy_descriptor);
-                //free(lose_message);
+            printf("%d", (*th_data).sum);
+            printf("\n");
+            if ((*th_data).sum == 0) { //send lose to player and win to enemy
 
-                char *win_message = (char *) malloc(sizeof(char) * 6);
-                strcpy(win_message, "won");
-                Write(win_message, (*th_data).player_descriptor);
-                //free(win_message);
+
+                strcpy((*th_data).message_to_send, "lose");
+                Write((*th_data).message_to_send, (*th_data).enemy_descriptor);
+                memset((*th_data).message_to_send, 0, (sizeof(char)) * 256);
+
+
+                strcpy((*th_data).message_to_send, "won");
+                Write((*th_data).message_to_send, (*th_data).player_descriptor);
+                memset((*th_data).message_to_send, 0, (sizeof(char)) * 256);
+
             }
-            //free(sum);
+            memset((*th_data).message_to_send, 0, (sizeof(char)) * 256);
+
         }
 
         // cleaning buffers
