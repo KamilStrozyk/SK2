@@ -76,11 +76,24 @@ void MarkSink(thread_data_t *th_data, int x, int y) {
 }
 
 void CheckSink(thread_data_t *th_data, int x, int y, int value) {
-    //for(int i = 0)
-    if (x > 0 && (*th_data).enemy_board[x - 1][y] == value) {
-
-        CheckSink(th_data, x - 1, y, value);
+    // for 2
+    printf("Value:%d", value);
+    if (value == 6) {
+        if (x > 0 && (*th_data).enemy_board[x - 1][y] == value) {
+            MarkSink(th_data, x - 1, y);
+            MarkSink(th_data, x, y);
+        } else if (x < 9 && (*th_data).enemy_board[x + 1][y] == value) {
+            MarkSink(th_data, x + 1, y);
+            MarkSink(th_data, x, y);
+        } else if (y > 0 && (*th_data).enemy_board[x][y - 1] == value) {
+            MarkSink(th_data, x, y - 1);
+            MarkSink(th_data, x, y);
+        } else if (y < 9 && (*th_data).enemy_board[x][y + 1] == value) {
+            MarkSink(th_data, x, y + 1);
+            MarkSink(th_data, x, y);
+        }
     }
+
 
 }
 
@@ -96,7 +109,7 @@ void MarkHit(thread_data_t *th_data, int x, int y) {
     Write((*th_data).message_to_send, (*th_data).enemy_descriptor);
     memset((*th_data).message_to_send, 0, (sizeof(char)) * 256);
 
-    (*th_data).enemy_board[x][y] += 1;
+    (*th_data).enemy_board[x][y] += 4;
 //  checking sink
 
     CheckSink(th_data, x, y, (*th_data).enemy_board[x][y]);
@@ -118,7 +131,6 @@ void *PlayerThread(void *t_data) {
         printf("Message:%s", (*th_data).message);
         printf("desc:%d;%d", (*th_data).player_descriptor, (*th_data).enemy_descriptor);
 
-
         // this is where the fun begins
         // message interpretation
         if (strstr((*th_data).message, "end") != NULL) //  end of game- end of thread
@@ -133,7 +145,6 @@ void *PlayerThread(void *t_data) {
         if (strstr((*th_data).message, "Player") !=
             NULL) // while connecting- receive player name and send to enemy
         {
-
 
             strcpy((*th_data).message_to_send, "enemy:");
             for (int i = 6; i < (*th_data).message_length; i++) (*th_data).message_to_send[i] = (*th_data).message[i];
@@ -177,18 +188,17 @@ void *PlayerThread(void *t_data) {
 
         }
         if ((*th_data).has_enemy_board && (*th_data).has_our_board && (*th_data).has_our_board &&
-            (*th_data).first_turn_ours &&
-            !(*th_data).game_started) { // when we have board from enemy and ourselves and we are first player
 
+            !(*th_data).game_started) { // when we have board from enemy and ourselves and we are first player
 
             strcpy((*th_data).message_to_send, "start");
             Write((*th_data).message_to_send, (*th_data).player_descriptor);
-            Write((*th_data).message_to_send, (*th_data).enemy_descriptor);
+            //Write((*th_data).message_to_send, (*th_data).enemy_descriptor);
             memset((*th_data).message_to_send, 0, (sizeof(char)) * 256);
 
             (*th_data).game_started = true;
-
-            SetTurnMessage((*th_data).player_descriptor, (*th_data).enemy_descriptor, th_data);
+            if ((*th_data).first_turn_ours)
+                SetTurnMessage((*th_data).player_descriptor, (*th_data).enemy_descriptor, th_data);
         }
         if ((*th_data).game_started && (*th_data).has_enemy_board &&
             (*th_data).has_our_board) { // when our ships are destroyed- sum of array is 0

@@ -337,6 +337,34 @@ public class Controller {
                                         boardToSent[y - 1][x - 1] = 1;
                                         shipsToSet--;
                                     }
+                                    // block some fields
+
+                                    for (int i = 0; i < 10; i++) {
+                                        for (int j = 0; j < 10; j++) {
+                                            if (boardToSent[i][j] > 0
+                                            ) {
+                                                System.out.println(Integer.toString(i) + ";" + Integer.toString(j) + "\n");
+
+                                                if (i > 0 && boardToSent[i - 1][j] == 0) {
+                                                    changeColorOfCell("lime", Integer.toString(i - 1) + Integer.toString(j), ourBoard);
+                                                    boardToSent[i - 1][j] = -1;
+                                                }
+                                                if (i < 9 && boardToSent[i + 1][j] == 0) {
+                                                    changeColorOfCell("lime", Integer.toString(i + 1) + Integer.toString(j), ourBoard);
+                                                    boardToSent[i + 1][j] = -1;
+                                                }
+                                                if (j > 0 && boardToSent[i][j - 1] == 0) {
+                                                    changeColorOfCell("lime", Integer.toString(i) + Integer.toString(j - 1), ourBoard);
+                                                    boardToSent[i][j - 1] = -1;
+                                                }
+                                                if (j < 9 && boardToSent[i][j + 1] == 0) {
+                                                    changeColorOfCell("lime", Integer.toString(i) + Integer.toString(j + 1), ourBoard);
+                                                    boardToSent[i][j + 1] = -1;
+                                                }
+                                            }
+                                        }
+                                    }
+
 
                                 } else {
                                     if (shipSizes[shipsToSet] == 1 && boardToSent[y - 1][x - 1] == 0) {
@@ -346,6 +374,11 @@ public class Controller {
                                         String clientMessage = "board:";
                                         for (int i = 0; i < 10; i++) {
                                             for (int j = 0; j < 10; j++) {
+                                                if (boardToSent[i][j] == -1) {
+                                                    boardToSent[i][j] = 0;
+                                                    changeColorOfCell("white", Integer.toString(i) + Integer.toString(j), ourBoard);
+
+                                                }
                                                 clientMessage += Integer.toString(boardToSent[i][j]);
                                             }
                                         }
@@ -444,7 +477,9 @@ public class Controller {
             int finalY = y + 1;
             Platform.runLater(() -> {
                 Node boardElement = getNodeByRowColumnIndex(finalX, finalY, board);
+                boardElement.setDisable(false);
                 boardElement.setStyle("-fx-background-color: " + color + ";-fx-border-color: black;");
+                boardElement.setDisable(true);
             });
         }
 
