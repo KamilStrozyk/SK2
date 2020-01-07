@@ -473,7 +473,7 @@ public class Controller {
                 alert.setHeaderText("There was an error during reading from the server. The game will be closed");
                 alert.showAndWait();
             });
-            send("end\n");
+            send("error\n");
             end();
         }
 
@@ -485,7 +485,7 @@ public class Controller {
                 alert.setHeaderText("There was an error during writing to the server. The game will be closed");
                 alert.showAndWait();
             });
-            send("end\n");
+            send("error\n");
             end();
         }
 
@@ -496,7 +496,7 @@ public class Controller {
                 alert.setTitle("Error");
                 alert.setHeaderText("There was unexpected server error. The game will be closed");
                 alert.showAndWait();
-                send("end\n");
+                send("error\n");
                 end();
             });
         }

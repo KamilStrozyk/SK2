@@ -58,8 +58,13 @@ void *PlayerThread(void *t_data) {
 
 
 
-        if (strstr((*th_data).message, "end") != NULL) // error of end of game- end of thread
+        if (strstr((*th_data).message, "end") != NULL) //  end of game- end of thread
         {
+            pthread_exit(NULL);
+        }
+        if (strstr((*th_data).message, "error") != NULL) // error - end of thread
+        {
+            Write((*th_data).message,(*th_data).enemy_descriptor);
             pthread_exit(NULL);
         } else if (strstr((*th_data).message, "Player") !=
                    NULL) // while connecting- receive player name and send to enemy
@@ -97,13 +102,53 @@ void *PlayerThread(void *t_data) {
             int x = (*th_data).message[5] - '0';
             int y = (*th_data).message[6] - '0';
             // 0- nothing/sank; <1;4> ships ; <5;8> hit ships
-            if ((*th_data).enemy_board[x][y] == 0) {
+            if ((*th_data).enemy_board[x][y] == 0) {// Omiss to enemy, miss to our
+                char *miss_message = (char *) malloc(sizeof(char) * 9);
+                strcpy(miss_message, "miss");
+                for (int i = 5; i <= 6; i++) miss_message[i - 1] = (*th_data).message[i];
+                Write(miss_message, (*th_data).player_descriptor);
+                free(miss_message);
 
+                char *Omiss_message = (char *) malloc(sizeof(char) * 9);
+                strcpy(Omiss_message, "Omiss");
+                for (int i = 5; i <= 6; i++) Omiss_message[i] = (*th_data).message[i];
+                Write(Omiss_message, (*th_data).enemy_descriptor);
+                free(Omiss_message);
                 SetTurnMessage((*th_data).enemy_descriptor, (*th_data).player_descriptor);
-            } else if ((*th_data).enemy_board[x][y] >0) {
 
+            } else if ((*th_data).enemy_board[x][y] >= 1) { // Osink to enemy, sink to our
+                char *sink_message = (char *) malloc(sizeof(char) * 9);
+                strcpy(sink_message, "sink");
+                for (int i = 5; i <= 6; i++) sink_message[i - 1] = (*th_data).message[i];
+                Write(sink_message, (*th_data).player_descriptor);
+                free(sink_message);
 
+                char *Osink_message = (char *) malloc(sizeof(char) * 9);
+                strcpy(Osink_message, "Osink");
+                for (int i = 5; i <= 6; i++) Osink_message[i] = (*th_data).message[i];
+                Write(Osink_message, (*th_data).enemy_descriptor);
+                free(Osink_message);
+
+                (*th_data).enemy_board[x][y] = 0;
                 SetTurnMessage((*th_data).player_descriptor, (*th_data).enemy_descriptor);
+
+            } else if ((*th_data).enemy_board[x][y] >= 2 &&
+                       (*th_data).enemy_board[x][y] <= 4) { // Ohit to enemy, hit to our
+                char *hit_message = (char *) malloc(sizeof(char) * 9);
+                strcpy(hit_message, "hit");
+                for (int i = 5; i <= 6; i++) hit_message[i - 2] = (*th_data).message[i];
+                Write(hit_message, (*th_data).player_descriptor);
+                free(hit_message);
+
+                char *Ohit_message = (char *) malloc(sizeof(char) * 9);
+                strcpy(Ohit_message, "Ohit");
+                for (int i = 5; i <= 6; i++) Ohit_message[i - 1] = (*th_data).message[i];
+                Write(Ohit_message, (*th_data).enemy_descriptor);
+                free(Ohit_message);
+
+                (*th_data).enemy_board[x][y] += 1;
+                SetTurnMessage((*th_data).player_descriptor, (*th_data).enemy_descriptor);
+
             }
 
 
