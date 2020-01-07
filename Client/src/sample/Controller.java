@@ -518,9 +518,10 @@ public class Controller {
         // set waiting message
         private void setWaitingMessage(boolean set) {
             Platform.runLater(() -> {
-                if (set) debugLabel.setText("Waiting for the server response.");
+                if (!set) debugLabel.setText("Waiting for the server response.");
                 else debugLabel.setText("");
-                enemyBoard.setDisable(set);
+                //enemyBoard.setDisable(!set);
+                enemyBoard.setDisable(false);
             });
         }
     }
