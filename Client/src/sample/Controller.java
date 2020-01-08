@@ -30,6 +30,8 @@ public class Controller {
     @FXML
     private Label enemyLabel;
     @FXML
+    private Label messageLabel;
+    @FXML
     private TextField serverIpTextField;
     @FXML
     private TextField serverPortTextField;
@@ -80,6 +82,7 @@ public class Controller {
 
     // popups with info, their names are intuitive
     private void connectionSuccess() {
+        messageLabel.setText("Last Game Message: Connection Succeeded!");
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
         alert.setTitle("Success");
         alert.setHeaderText("Connection Succeeded!");
@@ -87,6 +90,7 @@ public class Controller {
     }
 
     private void connectionFailed() {
+        messageLabel.setText("Last Game Message: Connection Failed! Try again");
         Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setTitle("Error");
         alert.setHeaderText("Connection Failed! Try again");
@@ -202,9 +206,6 @@ public class Controller {
             else if (serverMessage.contains("lose")) gameInfo("You've lost!");
             else if (serverMessage.contains("error")) serverError();
             else if (serverMessage.contains("turn")) setTurn(serverMessage);
-            else {
-                // TODO: Handler for unexpected situations
-            }
         }
 
         // sending information of our enemy name
@@ -512,6 +513,7 @@ public class Controller {
         // popup for error in reading
         private void readingError() {
             Platform.runLater(() -> {
+                messageLabel.setText("Last Game Message: There was an error during reading from the server. The game will be closed");
                 Alert alert = new Alert(Alert.AlertType.ERROR);
                 alert.setTitle("Error");
                 alert.setHeaderText("There was an error during reading from the server. The game will be closed");
@@ -524,6 +526,7 @@ public class Controller {
         // popup for error in writing
         private void writingError() {
             Platform.runLater(() -> {
+                messageLabel.setText("Last Game Message: There was an error during writing to the server. The game will be closed");
                 Alert alert = new Alert(Alert.AlertType.ERROR);
                 alert.setTitle("Error");
                 alert.setHeaderText("There was an error during writing to the server. The game will be closed");
@@ -535,6 +538,7 @@ public class Controller {
 
         // popup for server error in
         private void serverError() {
+            messageLabel.setText("Last Game Message: There was unexpected server error. The game will be closed");
             Platform.runLater(() -> {
                 Alert alert = new Alert(Alert.AlertType.ERROR);
                 alert.setTitle("Error");
@@ -547,6 +551,7 @@ public class Controller {
 
         // poup with game information, no need to do different handlers
         private void gameInfo(String message) {
+            messageLabel.setText("Last Game Message: "+ message);
             Platform.runLater(() -> {
                 Alert alert = new Alert(Alert.AlertType.INFORMATION);
                 alert.setTitle("Game Info");
