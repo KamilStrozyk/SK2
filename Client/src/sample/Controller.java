@@ -139,6 +139,7 @@ public class Controller {
             try {
                 PrintWriter writer = new PrintWriter(socket.getOutputStream(), true);
                 writer.println(clientMessage);
+                socket.getOutputStream().flush();
             } catch (IOException e) {
                 writingError();
             }
@@ -170,8 +171,15 @@ public class Controller {
 
             while (true) {
                 try {
-                    BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-                    String serverMessage = reader.readLine();
+                    String serverMessage = "";
+                    InputStream is = clientSocket.getInputStream();
+                    byte[] buffer = new byte[1];
+
+                    do {
+                        is.read(buffer);
+                        serverMessage += (char)buffer[0];
+
+                    } while (buffer[0] != '\n');
                     handleServerMessage(serverMessage);
                 } catch (Exception e) {
                     readingError();
@@ -182,7 +190,7 @@ public class Controller {
         // we're checking meaning of message from server
         private void handleServerMessage(String serverMessage) {
             //Platform.runLater(() -> debugLabel.setText(serverMessage));
-
+            System.out.println(serverMessage);
             if (serverMessage.contains("Ohit")) handleOurHit(serverMessage);
             else if (serverMessage.contains("Osink")) handleOurHitAndSink(serverMessage);
             else if (serverMessage.contains("Omiss")) handleOurMiss(serverMessage);
@@ -343,8 +351,6 @@ public class Controller {
                                         for (int j = 0; j < 10; j++) {
                                             if (boardToSent[i][j] > 0
                                             ) {
-                                                System.out.println(Integer.toString(i) + ";" + Integer.toString(j) + "\n");
-
                                                 if (i > 0 && boardToSent[i - 1][j] == 0) {
                                                     changeColorOfCell("lime", Integer.toString(i - 1) + Integer.toString(j), ourBoard);
                                                     boardToSent[i - 1][j] = -1;

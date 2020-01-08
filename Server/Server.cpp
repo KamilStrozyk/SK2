@@ -19,23 +19,22 @@ pthread_mutex_t lock;
 
 // reusable write function with mutex, nothing special at all
 void Write(char *message, int descriptor) {
-    pthread_mutex_lock(&lock);
+   //pthread_mutex_lock(&lock);
     message[strlen(message)] = '\n';
-    write(descriptor, message, 256);
-    printf("%s", message);
-    pthread_mutex_unlock(&lock);
+    if (write(descriptor, message, strlen(message)) != -1) printf("%s", message);
+   //pthread_mutex_unlock(&lock);
 }
 
 // reusable turn message
 void SetTurnMessage(int turn_descriptor, int not_turn_descriptor, thread_data_t *th_data) {
 
 
-    strcpy((*th_data).message_to_send, "ourturn\n");
+    strcpy((*th_data).message_to_send, "ourturn");
     Write((*th_data).message_to_send, turn_descriptor);
     memset((*th_data).message_to_send, 0, (sizeof(char)) * 256);
 
 
-    strcpy((*th_data).message_to_send, "turn\n");
+    strcpy((*th_data).message_to_send, "turn");
     Write((*th_data).message_to_send, not_turn_descriptor);
     memset((*th_data).message_to_send, 0, (sizeof(char)) * 256);
 
@@ -77,7 +76,7 @@ void MarkSink(thread_data_t *th_data, int x, int y) {
 
 void CheckSink(thread_data_t *th_data, int x, int y, int value) {
     // for 2
-    printf("Value:%d", value);
+    //printf("Value:%d", value);
     if (value == 6) {
         if (x > 0 && (*th_data).enemy_board[x - 1][y] == value) {
             MarkSink(th_data, x - 1, y);
@@ -128,8 +127,8 @@ void *PlayerThread(void *t_data) {
             (*th_data).message[i] = (*th_data).rcvd[0];
             (*th_data).message_length = i + 1;
         }
-        printf("Message:%s", (*th_data).message);
-        printf("desc:%d;%d", (*th_data).player_descriptor, (*th_data).enemy_descriptor);
+        //printf("Message:%s", (*th_data).message);
+       // printf("desc:%d;%d", (*th_data).player_descriptor, (*th_data).enemy_descriptor);
 
         // this is where the fun begins
         // message interpretation
@@ -208,8 +207,8 @@ void *PlayerThread(void *t_data) {
                     (*th_data).sum += (*th_data).enemy_board[i][j];
                 }
             }
-            printf("%d", (*th_data).sum);
-            printf("\n");
+            //printf("%d", (*th_data).sum);
+            //printf("\n");
             if ((*th_data).sum == 0) { //send lose to player and win to enemy
 
 
