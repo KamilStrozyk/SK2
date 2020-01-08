@@ -175,11 +175,12 @@ public class Controller {
                     InputStream is = clientSocket.getInputStream();
                     byte[] buffer = new byte[1];
 
-                    do {
+                    while (buffer[0] != '\n') {
                         is.read(buffer);
-                        serverMessage += (char)buffer[0];
+                        serverMessage += (char) buffer[0];
 
-                    } while (buffer[0] != '\n');
+                    }
+
                     handleServerMessage(serverMessage);
                 } catch (Exception e) {
                     readingError();
@@ -190,7 +191,7 @@ public class Controller {
         // we're checking meaning of message from server
         private void handleServerMessage(String serverMessage) {
             //Platform.runLater(() -> debugLabel.setText(serverMessage));
-            System.out.println(serverMessage);
+            //System.out.println(serverMessage);
             if (serverMessage.contains("Ohit")) handleOurHit(serverMessage);
             else if (serverMessage.contains("Osink")) handleOurHitAndSink(serverMessage);
             else if (serverMessage.contains("Omiss")) handleOurMiss(serverMessage);
@@ -441,6 +442,7 @@ public class Controller {
         // we're setting the whole sunk enemy ship in red
         private void handleHitAndSink(String message) {
             message = message.substring(4);
+            if (message.length() % 2 == 1) message = message.substring(0, message.length() - 1);
             while (message.length() > 0) {
                 changeColorOfCell("red", message, enemyBoard);
                 message = message.substring(2);
@@ -462,6 +464,7 @@ public class Controller {
         // we're setting the whole sunk our ship in red
         private void handleOurHitAndSink(String message) {
             message = message.substring(5);
+            if (message.length() % 2 == 1) message = message.substring(0, message.length() - 1);
             while (message.length() > 0) {
                 changeColorOfCell("red", message, ourBoard);
                 message = message.substring(2);
@@ -559,10 +562,9 @@ public class Controller {
         // set waiting message
         private void setWaitingMessage(boolean set) {
             Platform.runLater(() -> {
-                if (!set) debugLabel.setText("Waiting for the server response.");
+                if (set) debugLabel.setText("Waiting for the server response.");
                 else debugLabel.setText("");
-                //enemyBoard.setDisable(!set);
-                enemyBoard.setDisable(false);
+                enemyBoard.setDisable(set);
             });
         }
     }
