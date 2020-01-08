@@ -204,7 +204,7 @@ public class Controller {
             else if (serverMessage.contains("won")) gameInfo("Congratulations! you've won!");
             else if (serverMessage.contains("lose")) gameInfo("You've lost!");
             else if (serverMessage.contains("error")) serverError();
-            else if (serverMessage.contains("turn")) setTurn(serverMessage);
+            else if (serverMessage.contains("turn") || serverMessage.contains("our")) setTurn(serverMessage);
         }
 
         // sending information of our enemy name
